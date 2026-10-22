@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>pinocchio_ik_solver</name>
+  <version>0.1.0</version>
+  <description>Numerical IK solver plugin for ik_solver, for any URDF chain, based on Pinocchio</description>
+  <maintainer email="manuel.beschi@unibs.it">Manuel Beschi</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>ik_solver</depend>
+  <depend>pinocchio</depend>
+  <depend>eigen</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ur_description</test_depend>
+  <test_depend>xacro</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

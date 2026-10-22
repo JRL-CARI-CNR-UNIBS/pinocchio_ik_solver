@@ -1,0 +1,7 @@
+<library path="pinocchio_ik_solver">
+  <class name="ik_solver/PinocchioIkSolver" type="ik_solver::PinocchioIkSolver" base_class_type="ik_solver::IkSolver">
+    <description>
+      Numerical IK solver for any URDF chain (multi-start damped least squares, Pinocchio)
+    </description>
+  </class>
+</library>
