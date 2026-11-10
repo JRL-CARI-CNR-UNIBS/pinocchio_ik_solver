@@ -27,14 +27,14 @@ Multi-start damped least squares within the joint limits. It is a thin wrapper a
 ##### `config`
 
 ```cpp
-bool config(const std::string& param_ns = "") override
+bool config(const ik_solver::ParamMap& params) override
 ```
 
 Calls `IkSolver::config()`, which reads the common parameters, the URDF and the joint limits. Then it reads the solver parameters and builds the reduced Pinocchio model.
 
-The value of each non-fixed URDF joint that is not in `joint_names` is read from `<param_ns>/locked_joints/<joint>` (default 0).
+The value of each non-fixed URDF joint that is not in `joint_names` is read from `locked_joints.<joint>` (default 0).
 
-- `param_ns`: parameter namespace.
+- `params`: the parameters (ROS 2 parameters of the node, plus `robot_description`).
 - Returns false if the base configuration fails, or if a joint or frame is missing from the URDF.
 
 ##### `getIk`
