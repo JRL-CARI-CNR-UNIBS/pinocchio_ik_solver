@@ -30,7 +30,7 @@ target_link_libraries(pinocchio_kinematics PUBLIC pinocchio::pinocchio Eigen3::E
 # Plugin
 add_library(${PROJECT_NAME} SHARED src/pinocchio_ik_solver.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC pinocchio_kinematics)
-ament_target_dependencies(${PROJECT_NAME} PUBLIC rclcpp ik_solver pluginlib)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${rclcpp_TARGETS} ${ik_solver_TARGETS} ${pluginlib_TARGETS})
 
 pluginlib_export_plugin_description_file(ik_solver plugin.xml)
 
