@@ -37,7 +37,7 @@ namespace ik_solver
 class PinocchioIkSolver : public IkSolver
 {
 public:
-  bool config(const std::string& param_ns = "") override;
+  bool config(const ParamMap& params) override;
 
   Solutions getIk(const Eigen::Affine3d& T_base_flange, const Configurations& seeds,
                   const int& desired_solutions = -1, const int& min_stall_iterations = -1,

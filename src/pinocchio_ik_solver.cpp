@@ -11,60 +11,55 @@ PLUGINLIB_EXPORT_CLASS(ik_solver::PinocchioIkSolver, ik_solver::IkSolver)
 namespace ik_solver
 {
 
-namespace
+bool PinocchioIkSolver::config(const ParamMap& params)
 {
-template <typename T>
-void getParam(const std::string& name, T& value)
-{
-  std::string what;
-  T tmp;
-  if (cnr::param::get(name, tmp, what))
-    value = tmp;
-}
-}  // namespace
-
-bool PinocchioIkSolver::config(const std::string& param_ns)
-{
-  if (!IkSolver::config(param_ns))
+  if (!IkSolver::config(params))
   {
-    CNR_FATAL(this->logger_, "Ik solver initial config FAILED");
+    IK_FATAL(this->logger_, "Ik solver initial config FAILED");
     return false;
   }
 
-  options_ = pinocchio_ik_solver::IkOptions();
-  getParam(params_ns_ + "translation_tolerance", options_.translation_tolerance);
-  getParam(params_ns_ + "rotation_tolerance", options_.rotation_tolerance);
-  getParam(params_ns_ + "max_iterations_per_attempt", options_.max_iterations);
-  getParam(params_ns_ + "damping", options_.damping);
-  getParam(params_ns_ + "max_step", options_.max_step);
-  getParam(params_ns_ + "duplicate_tolerance", options_.duplicate_tolerance);
-  getParam(params_ns_ + "max_attempts", options_.max_attempts);
-
-  int seed = -1;
-  getParam(params_ns_ + "random_seed", seed);
-  rng_.seed(seed < 0 ? std::random_device{}() : static_cast<unsigned int>(seed));
-
   // Values of the URDF joints that are not in the chain
   std::map<std::string, double> locked;
-  for (const auto& joint : model_->joints_)
+  try
   {
-    if (joint.second->type == urdf::Joint::FIXED ||
-        std::find(joint_names_.begin(), joint_names_.end(), joint.first) != joint_names_.end())
-      continue;
-    double value = 0.0;
-    getParam(params_ns_ + "locked_joints/" + joint.first, value);
-    locked[joint.first] = value;
+    options_ = pinocchio_ik_solver::IkOptions();
+    get_optional_param(this->logger_, params_, "translation_tolerance", options_.translation_tolerance);
+    get_optional_param(this->logger_, params_, "rotation_tolerance", options_.rotation_tolerance);
+    get_optional_param(this->logger_, params_, "max_iterations_per_attempt", options_.max_iterations);
+    get_optional_param(this->logger_, params_, "damping", options_.damping);
+    get_optional_param(this->logger_, params_, "max_step", options_.max_step);
+    get_optional_param(this->logger_, params_, "duplicate_tolerance", options_.duplicate_tolerance);
+    get_optional_param(this->logger_, params_, "max_attempts", options_.max_attempts);
+
+    int seed = -1;
+    get_optional_param(this->logger_, params_, "random_seed", seed);
+    rng_.seed(seed < 0 ? std::random_device{}() : static_cast<unsigned int>(seed));
+
+    for (const auto& joint : model_->joints_)
+    {
+      if (joint.second->type == urdf::Joint::FIXED ||
+          std::find(joint_names_.begin(), joint_names_.end(), joint.first) != joint_names_.end())
+        continue;
+      double value = 0.0;
+      get_optional_param(this->logger_, params_, "locked_joints." + joint.first, value);
+      locked[joint.first] = value;
+    }
+  }
+  catch (const std::invalid_argument&)
+  {
+    return false;  // wrong parameter type, already logged
   }
 
   std::string error;
   if (!kinematics_.init(robot_description_, joint_names_, base_frame_, flange_frame_, locked, error))
   {
-    CNR_FATAL(this->logger_, "Pinocchio Ik Solver: %s", error.c_str());
+    IK_FATAL(this->logger_, "Pinocchio Ik Solver: " << error);
     return false;
   }
 
-  CNR_INFO(this->logger_, "Pinocchio Ik Solver ready: %zu joints, %zu locked, from %s to %s", kinematics_.dof(),
-           locked.size(), base_frame_.c_str(), flange_frame_.c_str());
+  IK_INFO(this->logger_, "Pinocchio Ik Solver ready: " << kinematics_.dof() << " joints, " << locked.size()
+                                                          << " locked, from " << base_frame_ << " to " << flange_frame_);
   return true;
 }
 

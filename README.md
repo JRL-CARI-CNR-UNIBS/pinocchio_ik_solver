@@ -29,24 +29,25 @@ colcon build --packages-select pinocchio_ik_solver
 
 ## Usage
 
-The plugin is loaded by `ik_solver_node`, like any other `ik_solver` plugin. Set `type: ik_solver/PinocchioIkSolver` in the configuration file:
+The plugin is loaded by `ik_solver_node`, like any other `ik_solver` plugin. Set `type: ik_solver/PinocchioIkSolver` in the configuration file (a ROS 2 parameter file):
 
 ```yaml
-pinocchio_ik:
-  type: ik_solver/PinocchioIkSolver
-  base_frame: base_link
-  flange_frame: tool0
-  tool_frame: tool0
-  joint_names:
-  - shoulder_pan_joint
-  - shoulder_lift_joint
-  - elbow_joint
-  - wrist_1_joint
-  - wrist_2_joint
-  - wrist_3_joint
-  desired_solutions: 8
-  min_stall_iterations: 50
-  max_stall_iterations: 300
+/pinocchio_ik/ik_solver_node:
+  ros__parameters:
+    type: ik_solver/PinocchioIkSolver
+    base_frame: base_link
+    flange_frame: tool0
+    tool_frame: tool0
+    joint_names:
+    - shoulder_pan_joint
+    - shoulder_lift_joint
+    - elbow_joint
+    - wrist_1_joint
+    - wrist_2_joint
+    - wrist_3_joint
+    desired_solutions: 8
+    min_stall_iterations: 50
+    max_stall_iterations: 300
 ```
 
 Then start the node with the `ik_solver` launch file:
@@ -75,7 +76,7 @@ These are read by the `ik_solver` base class:
 | `desired_solutions` | int | 8 | Distinct solutions (modulo 2π) to look for. |
 | `min_stall_iterations` | int | 998 | Attempts in a row with no new solution before stopping, once at least one has been found. |
 | `max_stall_iterations` | int | 999 | Attempts in a row with no new solution before stopping, if none has been found. |
-| `limits/<joint>/lower`, `limits/<joint>/upper` | double | URDF | Narrower joint limits. |
+| `limits.<joint>.lower`, `limits.<joint>.upper` | double | URDF | Narrower joint limits. |
 
 The base-class defaults for the stall parameters are high for a numerical solver: a pose that can't be reached costs about 1000 attempts. Values around 50 and 300 work well for 6-joint arms.
 
@@ -93,11 +94,11 @@ All are optional:
 | `duplicate_tolerance` | double | 1e-3 | Two solutions closer than this (modulo 2π for revolute joints) are the same. |
 | `max_attempts` | int | 100000 | Upper bound on the attempts of one query. |
 | `random_seed` | int | -1 | Seed of the random restarts (-1: random). Each solver instance (one per worker thread) uses the same seed. |
-| `locked_joints/<joint>` | double | 0 | Value of a URDF joint that is not in `joint_names`. |
+| `locked_joints.<joint>` | double | 0 | Value of a URDF joint that is not in `joint_names`. |
 
 ## How it works
 
-1. **Model.** At configuration, the URDF is parsed with Pinocchio and reduced to `joint_names`. All other joints are locked at `locked_joints/<joint>`, or at 0 if not set. Fixed frames are kept, so `base_frame` and `flange_frame` can be any link of the URDF.
+1. **Model.** At configuration, the URDF is parsed with Pinocchio and reduced to `joint_names`. All other joints are locked at `locked_joints.<joint>`, or at 0 if not set. Fixed frames are kept, so `base_frame` and `flange_frame` can be any link of the URDF.
 2. **Forward kinematics.** `getFK` returns the pose of `flange_frame` in `base_frame`.
 3. **Single attempt.** One attempt runs Levenberg–Marquardt on the pose error `log6(T_current⁻¹ · T_target)`, expressed in the flange frame:
    - Each step is `dq = −Jᵀ (J Jᵀ + λI)⁻¹ e`, where `J` is the Jacobian of the error. It accounts for the base frame moving with the chain joints.
